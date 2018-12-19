@@ -31,7 +31,7 @@ async function startAgentSession(access_token) {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("POST", CHAT_API_URL);
     xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    return await xmlhttp.send({ query, variables});
+    return await xmlhttp.send(JSON.stringify({ query: query, variables: variables}));
 }
 
 async function init() {
