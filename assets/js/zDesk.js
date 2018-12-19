@@ -318,7 +318,7 @@ async function init() {
     } catch (e) {
         console.log("[startAgentSession] Request fail");
         console.log(e);
-        console.log('ayo');
+        console.log('ayoww');
     }
 }
 
