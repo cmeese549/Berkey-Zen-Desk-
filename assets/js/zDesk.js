@@ -35,7 +35,7 @@ async function startAgentSession(access_token) {
     //xhr.send(JSON.stringify(query , variables));
    
    
-    return await  xhr.send(JSON.stringify(query , variables));
+    return await  xhr.send(JSON.stringify({query , variables}));
 }
 
 async function init() {
@@ -315,7 +315,7 @@ async function init() {
     } catch (e) {
         console.log("[startAgentSession] Request fail");
         console.log(e);
-        console.log('ayfdddww');
+        console.log('654');
     }
 }
 
