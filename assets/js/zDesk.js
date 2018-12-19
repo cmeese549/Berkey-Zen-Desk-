@@ -27,12 +27,14 @@ async function startAgentSession(access_token) {
     const variables = { access_token };
 
     console.log("[startAgentSession] Request sent");
-
+    console.log('6522344');
     var xhr = new XMLHttpRequest();
     xhr.responseType = 'json';
     xhr.open("POST", CHAT_API_URL);
     xhr.setRequestHeader("Content-Type", "application/json");
-    //xhr.send(JSON.stringify(query , variables));
+    //xhr.send(JSON.stringify(query , variables));  
+
+    console.log('654333');
    
    
     return await  xhr.send(JSON.stringify({query , variables}));
