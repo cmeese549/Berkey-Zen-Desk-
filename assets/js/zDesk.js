@@ -28,10 +28,17 @@ async function startAgentSession(access_token) {
 
     console.log("[startAgentSession] Request sent");
 
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", CHAT_API_URL);
-    xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    return await xmlhttp.send(JSON.stringify({ query: query, variables: variables}));
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';
+    xhr.open("POST", CHAT_API_URL);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    
+    xhr.onload = function () {
+      console.log('data returned:', xhr.response);
+    }
+    
+   
+    return await  xhr.send(JSON.stringify(query , variables));;
 }
 
 async function init() {
