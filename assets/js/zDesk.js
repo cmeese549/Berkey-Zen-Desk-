@@ -28,12 +28,10 @@ async function startAgentSession(access_token) {
 
     console.log("[startAgentSession] Request sent");
 
-    return await request
-        .post(CHAT_API_URL)
-        .set({
-            "Content-Type": "application/json"
-        })
-        .send({ query, variables });
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("POST", CHAT_API_URL);
+    xmlhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    return await xmlhttp.send(JSON.stringify({ query, variables}));
 }
 
 async function init() {
