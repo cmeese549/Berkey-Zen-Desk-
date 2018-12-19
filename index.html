@@ -1,0 +1,543 @@
+
+
+<!DOCTYPE html>
+<head>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="socket.io/socket.io.js"></script>
+        <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+        <style>
+            .mytext{
+    border:0;padding:10px;background:whitesmoke;
+}
+.text{
+    width:75%;display:flex;flex-direction:column;  
+}
+.text > p:first-of-type{
+    width:100%;margin-top:0;margin-bottom:auto;line-height: 13px;font-size: 12px;
+}
+.text > p:last-of-type{
+    width:100%;text-align:right;color:silver;margin-bottom:-7px;margin-top:auto;
+}
+.text-l{
+    float:left;padding-right:10px;
+}        
+.text-r{
+    float:right;padding-left:10px;
+}
+.avatar{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    width:25%;
+    float:left;
+    padding-right:10px;
+}
+.macro{
+    margin-top:5px;width:85%;border-radius:5px;padding:5px;display:flex;
+}
+.msj-rta{
+    float:right;background:whitesmoke;
+}
+.msj{
+    float:left;background:white;
+}
+.frame{
+    background:#e0e0de;
+    height:450px;
+    overflow:hidden;
+    padding:0;
+}
+.frame > div:last-of-type{
+    position:absolute;bottom:5px;width:100%;display:flex;
+}
+ul {
+    width:100%;
+    list-style-type: none;
+    padding:18px;
+    position:absolute;
+    bottom:32px;
+    display:flex;
+    flex-direction: column;
+
+}
+.msj:before{
+    width: 0;
+    height: 0;
+    content:"";
+    top:-5px;
+    left:-14px;
+    position:relative;
+    border-style: solid;
+    border-width: 0 13px 13px 0;
+    border-color: transparent #ffffff transparent transparent;            
+}
+.msj-rta:after{
+    width: 0;
+    height: 0;
+    content:"";
+    top:-5px;
+    left:14px;
+    position:relative;
+    border-style: solid;
+    border-width: 13px 13px 0 0;
+    border-color: whitesmoke transparent transparent transparent;           
+}  
+input:focus{
+    outline: none;
+}        
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+    color: #d4d4d4;
+}
+::-moz-placeholder { /* Firefox 19+ */
+    color: #d4d4d4;
+}
+:-ms-input-placeholder { /* IE 10+ */
+    color: #d4d4d4;
+}
+:-moz-placeholder { /* Firefox 18- */
+    color: #d4d4d4;
+}   
+        </style>
+       
+</head>
+  
+<html>
+    <body>
+        <div class="col-sm-3 col-sm-offset-4 frame">
+            <ul></ul>
+            <div>
+                <div class="msj-rta macro" style="margin:auto">                        
+                    <div class="text text-r" style="background:whitesmoke !important">
+                        <input class="mytext" placeholder="Type a message"/>
+                    </div> 
+                </div>
+            </div>
+        </div>        
+    </body>
+
+    <script>
+    /**
+ * Sample Node app for Zendesk Chat Conversations API
+ *
+ * The app will sign you on as a Zendesk Chat agent, start
+ * subscribing for messages from visitor and reply back
+ * the same message that the visitor send.
+ *
+ * Running the app:
+ * - Require Node 8 or above
+ * - Install dependencies: `ws` and `superagent` using npm or yarn
+ * - Update `ACCESS_TOKEN` constants with the access token that you want to use.
+ *   Refers to https://developer.zendesk.com/rest_api/docs/chat/auth for access
+ *   token generation guide.
+ * - Run the app using `node conversations_api_sample_app.js`
+ */
+
+ var socket = io('http://localhost');
+  socket.on('connect', function(){console.log("oooofers")});
+
+const ACCESS_TOKEN = "YzXWHZv4IzDHt5R1JmNR5X0B7MbkKqxr";
+
+const CHAT_API_URL = "https://chat-api.zopim.com/graphql/request";
+const REQUEST_ID = {
+    MESSAGE_SUBSCRIPTION: 1,
+    UPDATE_AGENT_STATUS: 2,
+    SEND_MESSAGE: 3,
+    GET_DEPARTMENTS: 4,
+    TRANSFER_TO_DEPARTMENT: 5
+};
+const SUBSCRIPTION_DATA_SIGNAL = "DATA";
+const TYPE = {
+    VISITOR: "Visitor"
+};
+
+const channelsToBeTransferred = [];
+let messageSubscriptionId;
+
+async function startAgentSession(access_token) {
+    const query = `mutation($access_token: String!) {
+        startAgentSession(access_token: $access_token) {
+            websocket_url 
+            session_id 
+            client_id
+        }
+    }`;
+    const variables = { access_token };
+
+    console.log("[startAgentSession] Request sent");
+
+    return await request
+        .post(CHAT_API_URL)
+        .set({
+            "Content-Type": "application/json"
+        })
+        .send({ query, variables });
+}
+
+async function init() {
+    try {
+        const startAgentSessionResp = (await startAgentSession(ACCESS_TOKEN)).body;
+
+        if (startAgentSessionResp.errors && startAgentSessionResp.errors.length > 0) {
+            console.log("[startAgentSession] Invalid access token");
+        } else {
+            console.log(
+                "[startAgentSession] Successfully start agent session"
+            );
+
+            const {
+                websocket_url,
+                session_id,
+                client_id
+            } = startAgentSessionResp.data.startAgentSession;
+
+            const webSocket = new WebSocket(websocket_url);
+
+            webSocket.on("open", () => {
+                console.log(`[WebSocket] Successfully connected to ${websocket_url}`);
+
+                /*************************************************
+                 * Periodic ping to prevent WebSocket connection *
+                 * time out due to idle connection               *
+                 *************************************************/
+                setInterval(() => {
+                    webSocket.send(
+                    JSON.stringify({
+                        sig: "PING",
+                        payload: +new Date()
+                    })
+                    );
+                }, 5000);
+
+                /***********************
+                 * Update agent status *
+                 ***********************/
+                const updateAgentStatusQuery = {
+                    payload: {
+                        query: `mutation { 
+                        updateAgentStatus(status: ONLINE) { 
+                            node {
+                                id 
+                            } 
+                        }
+                    }`
+                    },
+                    type: "request",
+                    id: REQUEST_ID.UPDATE_AGENT_STATUS
+                };
+                webSocket.send(JSON.stringify(updateAgentStatusQuery));
+                console.log("[updateAgentStatus] Request sent");
+
+                /************************
+                 * Message subscription *
+                 ************************/
+                const messageSubscriptionQuery = {
+                    payload: {
+                        query: `subscription { 
+                        message { 
+                            node { 
+                                id 
+                                content 
+                                channel { 
+                                    id 
+                                } 
+                                from { 
+                                    __typename
+                                    display_name
+                                } 
+                            } 
+                        } 
+                    }`
+                    },
+                    type: "request",
+                    id: REQUEST_ID.MESSAGE_SUBSCRIPTION
+                };
+                webSocket.send(JSON.stringify(messageSubscriptionQuery));
+                console.log("[message] Subscription request sent");
+            });
+
+            /************************************************
+             * Listen to messages from WebSocket connection *
+             ************************************************/
+            webSocket.on("message", message => {
+                const data = JSON.parse(message);
+
+                // Listen to successful message subscription request
+                if (data.id === REQUEST_ID.MESSAGE_SUBSCRIPTION) {
+                    if (data.payload.errors && data.payload.errors.length > 0) {
+                        console.log("[message] Failed to subscribe to message");
+                    } else {
+                        messageSubscriptionId = data.payload.data.subscription_id;
+                        console.log("[message] Successfully subscribe to message");
+                    }
+                }
+
+                // Listen to successful update agent status request
+                if (data.id === REQUEST_ID.UPDATE_AGENT_STATUS) {
+                    if (data.payload.errors && data.payload.errors.length > 0) {
+                        console.log("[updateAgentStatus] Failed to update agent status");
+                    } else {
+                        console.log("[updateAgentStatus] Successfully update agent status");
+                    }
+                }
+
+                if (data.id === REQUEST_ID.SEND_MESSAGE) {
+                    if (data.payload.errors && data.payload.errors.length > 0) {
+                        console.log("[sendMessage] Failed to send message to visitor");
+                    } else {
+                        console.log(
+                            "[sendMessage] Successfully to send message to visitor"
+                        );
+                    }
+                }
+
+                if (data.id === REQUEST_ID.TRANSFER_TO_DEPARTMENT) {
+                    if (data.payload.errors && data.payload.errors.length > 0) {
+                        console.log("[transferToDepartment] Failed to transfer visitor to a department");
+                    } else {
+                        console.log(
+                            "[transferToDepartment] Successfully to transfer visitor to a department"
+                        );
+                    }
+                }
+
+                if (data.id === REQUEST_ID.GET_DEPARTMENTS) {
+                    const channelToBeTransferred = channelsToBeTransferred.pop();
+
+                    if (data.payload.errors && data.payload.errors.length > 0) {
+                        console.log("[getDepartments] Failed to get departments info");
+                    } else {
+                        console.log(
+                            "[getDepartments] Successfully to get departments info"
+                        );
+
+                        const allDepartments = data.payload.data.departments.edges;
+                        const onlineDepartments = allDepartments.filter(department => department.node.status === 'ONLINE');
+
+                        if (onlineDepartments.length > 0) {
+                            const pickRandomDepartment = Math.floor(Math.random() * onlineDepartments.length);
+                            const onlineDepartment = onlineDepartments[pickRandomDepartment].node;
+
+                            /********************************************************
+                             * Notify visitor that they are going to be transferred *
+                             ********************************************************/
+                            const sendMessageQuery = {
+                                payload: {
+                                    query: `mutation { 
+                                        sendMessage(
+                                            channel_id: "${channelToBeTransferred}", 
+                                            msg: "You are going to be transferred to ${onlineDepartment.name} department shortly"
+                                        ) {
+                                            success
+                                        }
+                                    }`
+                                },
+                                type: "request",
+                                id: REQUEST_ID.SEND_MESSAGE
+                            };
+
+                            webSocket.send(JSON.stringify(sendMessageQuery));
+
+                            /***********************************
+                             *Transfer channel to a department *
+                             ***********************************/
+                            const transferToDepartmentQuery = {
+                                payload: {
+                                    query: `mutation {
+                                        transferToDepartment(
+                                            channel_id: "${channelToBeTransferred}", 
+                                            department_id: "${onlineDepartment.id}") {
+                                          success
+                                        }
+                                      }`
+                                },
+                                type: "request",
+                                id: REQUEST_ID.TRANSFER_TO_DEPARTMENT
+                            };
+
+                            webSocket.send(JSON.stringify(transferToDepartmentQuery));
+                        }
+                        else {
+                            /****************************************************
+                             * Notify visitor that there is no online department*
+                             ****************************************************/
+                            const sendMessageQuery = {
+                                payload: {
+                                    query: `mutation { 
+                                        sendMessage(
+                                            channel_id: "${channelToBeTransferred}", 
+                                            msg: "Sorry, there is no online department at the moment"
+                                        ) {
+                                            success
+                                        }
+                                    }`
+                                },
+                                type: "request",
+                                id: REQUEST_ID.SEND_MESSAGE
+                            };
+
+                            webSocket.send(JSON.stringify(sendMessageQuery));
+                        }
+                    }
+                }
+
+                // Listen to chat messages from the visitor
+                if (
+                    data.sig === SUBSCRIPTION_DATA_SIGNAL &&
+                    data.subscription_id === messageSubscriptionId &&
+                    data.payload.data
+                ) {
+                    const chatMessage = data.payload.data.message.node;
+                    const sender = chatMessage.from;
+
+                    if (sender.__typename === TYPE.VISITOR) {
+                        console.log(
+                            `[message] Received: '${chatMessage.content}' from: '${
+                            sender.display_name
+                            }'`
+                        );
+
+                        if (chatMessage.content.toLowerCase().includes('transfer')) {
+                            channelsToBeTransferred.push(chatMessage.channel.id);
+
+                            /*****************************************************************
+                             * Get current departments information for transferring the chat *
+                             *****************************************************************/
+                            const getDepartmentsQuery = {
+                                payload: {
+                                    query: `query {
+                                        departments {
+                                          edges {
+                                            node {
+                                              id
+                                              name
+                                              status
+                                            }
+                                          }
+                                        }
+                                      }`
+                                },
+                                type: "request",
+                                id: REQUEST_ID.GET_DEPARTMENTS
+                            };
+
+                            webSocket.send(JSON.stringify(getDepartmentsQuery));
+                        }
+                        else {
+                            /*************************
+                             * Reply back to visitor *
+                             *************************/
+                            const sendMessageQuery = {
+                                payload: {
+                                    query: `mutation { 
+                                        sendMessage(
+                                            channel_id: "${chatMessage.channel.id}", 
+                                            msg: "${chatMessage.content}"
+                                        ) {
+                                            success
+                                        }
+                                    }`
+                                },
+                                type: "request",
+                                id: REQUEST_ID.SEND_MESSAGE
+                            };
+
+                            webSocket.send(JSON.stringify(sendMessageQuery));
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.log("[startAgentSession] Request fail");
+    }
+}
+
+init();
+
+</script>
+
+    <script>
+    var me = {};
+            me.avatar = "https://lh6.googleusercontent.com/-lr2nyjhhjXw/AAAAAAAAAAI/AAAAAAAARmE/MdtfUmC0M4s/photo.jpg?sz=48";
+            
+            var you = {};
+            you.avatar = "https://a11.t26.net/taringa/avatares/9/1/2/F/7/8/Demon_King1/48x48_5C5.jpg";
+
+            var zData = {};
+
+            
+            function formatAMPM(date) {
+                var hours = date.getHours();
+                var minutes = date.getMinutes();
+                var ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                minutes = minutes < 10 ? '0'+minutes : minutes;
+                var strTime = hours + ':' + minutes + ' ' + ampm;
+                return strTime;
+            }            
+            
+            //-- No use time. It is a javaScript effect.
+            function insertChat(who, text, time){
+                if (time === undefined){
+                    time = 0;
+                }
+                if (who === undefined){
+                    who = "customer"
+                }
+                var control = "";
+                var date = formatAMPM(new Date());
+                
+                if (who == "agent"){
+                    
+                    control = '<li style="width:100%">' +
+                                    '<div class="msj macro">' +
+                                    '<div class="avatar"><img class="img-circle" style="width:100%;" src="'+ me.avatar +'" /></div>' +
+                                        '<div class="text text-l">' +
+                                            '<p>'+ text +'</p>' +
+                                            '<p><small>'+date+'</small></p>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</li>';                    
+                }else{
+                    control = '<li style="width:100%;">' +
+                                    '<div class="msj-rta macro">' +
+                                        '<div class="text text-r">' +
+                                            '<p>'+text+'</p>' +
+                                            '<p><small>'+date+'</small></p>' +
+                                        '</div>' +
+                                    '<div class="avatar" style="padding:0px 0px 0px 10px !important"><img class="img-circle" style="width:100%;" src="'+you.avatar+'" /></div>' +                                
+                              '</li>';
+                }
+                setTimeout(
+                    function(){                        
+                        $("ul").append(control);
+            
+                    }, time);
+                
+            }
+            
+            function resetChat(){
+                $("ul").empty();
+            }
+            
+            $(".mytext").on("keyup", function(e){
+                if (e.which == 13){
+                    var text = $(this).val();
+                    if (text !== ""){
+                        insertChat("customer", text);              
+                        $(this).val('');
+                    }
+                }
+            });
+            
+            //-- Clear Chat
+            resetChat();
+            
+            //-- Print Messages
+            insertChat("agent", "Welcome to Berkey Filters!  Is there anything I can help you with today?", 0);  
+            
+            
+            //-- NOTE: No use time on insertChat.</script>
+</html>
