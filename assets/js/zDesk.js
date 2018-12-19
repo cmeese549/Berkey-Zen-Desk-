@@ -24,7 +24,7 @@ async function startAgentSession(access_token) {
             client_id
         }
     }`;
-    const variables = { access_token: ACCESS_TOKEN };
+    const variables = { "access_token" : access_token };
 
     console.log("[startAgentSession] Request sent");
     console.log('6522344');
