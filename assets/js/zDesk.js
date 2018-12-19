@@ -32,11 +32,11 @@ async function startAgentSession(access_token) {
     xhr.responseType = 'json';
     xhr.open("POST", CHAT_API_URL);
     xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.send({query: query , variables: variables});
+    
     console.log('654333');
    
    
-    return await  xhr;
+    return await  xhr.send({query: query , variables: variables});
 }
 
 async function init() {
@@ -316,7 +316,7 @@ async function init() {
     } catch (e) {
         console.log("[startAgentSession] Request fail");
         console.log(e);
-        console.log('zzz');
+        console.log('qqq');
     }
 }
 
