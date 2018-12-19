@@ -32,12 +32,11 @@ async function startAgentSession(access_token) {
     xhr.responseType = 'json';
     xhr.open("POST", CHAT_API_URL);
     xhr.setRequestHeader("Content-Type", "application/json");
-    //xhr.send(JSON.stringify(query , variables));  
-
+    xhr.send({query: query , variables: variables});
     console.log('654333');
    
    
-    return await  xhr.send({query: query , variables: variables});
+    return await  xhr;
 }
 
 async function init() {
