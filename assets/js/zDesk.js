@@ -24,7 +24,7 @@ async function startAgentSession(access_token) {
             client_id
         }
     }`;
-    const variables = { access_token };
+    const variables = { access_token: ACCESS_TOKEN };
 
     console.log("[startAgentSession] Request sent");
     console.log('6522344');
@@ -37,7 +37,7 @@ async function startAgentSession(access_token) {
     console.log('654333');
    
    
-    return await  xhr.send({query , variables});
+    return await  xhr.send({query: query , variables: variables});
 }
 
 async function init() {
@@ -317,7 +317,7 @@ async function init() {
     } catch (e) {
         console.log("[startAgentSession] Request fail");
         console.log(e);
-        console.log('fff');
+        console.log('qqq');
     }
 }
 
