@@ -1,6 +1,3 @@
-var socket = io('http://localhost');
-socket.on('connect', function(){console.log("oooofers")});
-
 const ACCESS_TOKEN = "YzXWHZv4IzDHt5R1JmNR5X0B7MbkKqxr";
 
 const CHAT_API_URL = "https://chat-api.zopim.com/graphql/request";
