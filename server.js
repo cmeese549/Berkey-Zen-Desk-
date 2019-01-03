@@ -1,17 +1,11 @@
-/*eslint no-console:0 */
-'use strict';
-const webpack = require('webpack');
-const WebpackDevServer = require('webpack-dev-server');
-const config = require('./webpack.config');
-const open = require('open');
-const ip_address = '127.0.0.1';
+const zChat = require('zsdk/web-sdk.js');
 
-new WebpackDevServer(webpack(config), config.devServer)
-.listen(config.port, ip_address, (err) => {
-  if (err) {
-    console.log(err);
-  }
-  console.log(`Listening at ${ip_address}:${config.port}`);
-  console.log('Opening your system browser...');
-  open(`http://${ip_address}:${config.port}/webpack-dev-server/`);
+zChat.init({
+    account_key: 'YzXWHZv4IzDHt5R1JmNR5X0B7MbkKqxr'
+});
+
+zChat.on('connection_update', function(status) {
+    if (status === 'connected') {
+        console.log('ayo');
+    }
 });
