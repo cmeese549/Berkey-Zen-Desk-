@@ -1,4 +1,4 @@
-const zChat = require('zsdk/web-sdk.js');
+const zChat = require('zsdk/web-sdk');
 
 zChat.init({
     account_key: 'YzXWHZv4IzDHt5R1JmNR5X0B7MbkKqxr'
