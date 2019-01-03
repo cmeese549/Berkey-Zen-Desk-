@@ -1,11 +1,12 @@
-const zChat = require('zsdk/web-sdk');
+const express = require('express');
+const app = express();
+const path = require('path');
+const port = 3000;
 
-zChat.init({
-    account_key: 'YzXWHZv4IzDHt5R1JmNR5X0B7MbkKqxr'
-});
+app.use(express.static('src'));
 
-zChat.on('connection_update', function(status) {
-    if (status === 'connected') {
-        console.log('ayo');
-    }
-});
+app.get('/', function(req,res) {
+    res.sendFile(path.join(__dirname + '/index.html'));
+})
+
+app.listen(port, () => console.log('Heeeeeeeeeeeeeeeeeeeeeek'));
