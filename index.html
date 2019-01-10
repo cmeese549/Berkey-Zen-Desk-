@@ -6,12 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="stylesheet" href="/botui/build/botui.min.css" />
     <link rel="stylesheet" href="/botui/build/botui-theme-default.css" />
+    <link rel="stylesheet" href="/styles/style.css" />
+    <link rel="stylesheet" href="/styles/animate.css" />
   </head>
   <body>
-    <div style="max-width: 500px; max-height: 1200px;">
+       
+    <div class="chaterino fadeInRight animated">
+           
+    <div class="panel">
+
+        <div class="panelLeft">
+
+        </div>
+
+        <div class="panelCenter">
+                <h2 class="agentName">Berkey Bot</h2>
+                <p class="subtitle">Intelligent Support AI</p>
+        </div>
+
+        <div class="panelRight">
+            <a href="#" onclick="ToggleMenu()" id="ham">
+                <span class="ham"><strong>. . .</strong></span>
+                <div id="menu" class="menuHidden animated fadeOutRight">
+                        <a href="#" onclick="humanFromMenu()" class="fakeLink "><span>Contact a human</span></a>
+                        <hr>
+                        <a href="#" onclick="Restart()" class="fakeLink "><span>Restart Chat</span></a>
+                        <hr>
+                        <a href="#" class="fakeLink"><span>What's this?</span></a>
+                    </div>
+            </a>
+           
+        </div>
+       
+    </div>
     <div id="my-botui-app">
         <bot-ui></bot-ui>
     </div>
+    <div><br></div>
     </div>
     <script src="https://cdn.jsdelivr.net/vue/latest/vue.min.js"></script>
     <script src="/botui/build/botui.min.js"></script>
@@ -29,8 +60,12 @@
 zChat.on('connection_update', function(status) {
     if (status === 'connected') {
         console.log('ayo');
+        var departments = zChat.getVisitorDefaultDepartment();
+console.log(departments);
     }
 });
+
+
     </script>
   </body>
 </html>

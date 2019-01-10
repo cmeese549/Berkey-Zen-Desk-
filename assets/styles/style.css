@@ -1,0 +1,82 @@
+@font-face {
+    font-family: big;
+    src: url(../fonts/heavy.woff);
+  }
+  @font-face {
+    font-family: regular;
+    src: url(../fonts/reg.woff);
+  }
+
+
+.chaterino {
+    max-width: 340px;
+    background-color: rgb(255, 255, 255);
+    border-radius: 20px;
+    border: 1px solid #919292;
+    box-shadow: 2px 10px 40px rgba(22,20,19,0.4);
+    overflow-y: auto;
+    font-family: regular;
+}
+
+.panel{
+    border-bottom:1px solid #919292;
+    display: grid;
+    align-content: space-evenly;
+}
+
+.agentName{
+    font-family: big;
+    font-size: 2em;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.subtitle{
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
+.panelCenter{
+    text-align: center;
+    grid-column: 2;
+}
+
+.panelLeft{
+    text-align: left;
+    float: left;
+    grid-column: 1;
+}
+
+.panelRight{
+    text-align: right;
+    float: right;
+    grid-column: 3;
+}
+
+#ham{
+    margin-right: 10%; 
+    text-decoration: none; 
+    font-size: 20px;
+}
+
+.menuHidden{
+    display: none;
+}
+
+.menu{
+    border: 1px solid #919292;
+    border-radius: 10px;
+    font-family: regular;
+    box-shadow: 2px 5px 10px rgba(22,20,19,0.4);
+    background-color: #f7f7f7;
+    text-align: center;
+}
+
+.fakeLink{
+    text-decoration: none;
+    color: #595a5a;
+}
+
+.sep{
+    border-bottom:1px solid #919292;
+}
