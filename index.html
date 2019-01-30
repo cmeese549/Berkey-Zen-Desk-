@@ -21,14 +21,14 @@
 
         <div class="panelCenter">
                 <h2 class="agentName">Berkey Bot</h2>
-                <p class="subtitle">Intelligent Support AI</p>
+                <p id="typing" class="subtitle">Intelligent Support AI</p>
         </div>
 
         <div class="panelRight">
             <a href="#" onclick="ToggleMenu()" id="ham">
                 <span class="ham"><strong>. . .</strong></span>
                 <div id="menu" class="menuHidden animated fadeOutRight">
-                        <a href="#" onclick="humanFromMenu()" class="fakeLink "><span>Contact a human</span></a>
+                        <a href="#" id="menu1" onclick="humanFromMenu()" class="fakeLink "><span>Contact a human</span></a>
                         <hr>
                         <a href="#" onclick="Restart()" class="fakeLink "><span>Restart Chat</span></a>
                         <hr>
@@ -50,22 +50,10 @@
     src="https://code.jquery.com/jquery-3.3.1.min.js"
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
     crossorigin="anonymous"></script>
+    <script src="/scripts/data.js"></script>
     <script src="/scripts/bot.js"></script>
-    <script src="/scripts/web-sdk.js" ></script>
-    <script>
-    zChat.init({
-    account_key: 'YzXWHZv4IzDHt5R1JmNR5X0B7MbkKqxr'
-});
-
-zChat.on('connection_update', function(status) {
-    if (status === 'connected') {
-        console.log('ayo');
-        var departments = zChat.getVisitorDefaultDepartment();
-console.log(departments);
-    }
-});
-
-
-    </script>
+    <script src="/scripts/web-sdk.js"></script>
+    <script src="/scripts/prompts.js"></script>
+    <script src="/scripts/zd.js"></script>
   </body>
 </html>

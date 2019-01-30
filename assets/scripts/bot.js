@@ -22,6 +22,32 @@ function scrollFix(){
     d.scrollTop(d.prop("scrollHeight"));
 }
 
+function updateMenu(type){
+    let x = document.getElementById('menu1');
+    switch(type){
+        case 'startChat':
+            x.innerHTML = 'End Chat Session';
+            x.onclick = () => { endChatFromMenu() };
+            break;
+        case 'endChat': 
+            x.innerHTML = 'Contact a human';
+            x.onclick = () => { humanFromMenu() };
+        default:
+            break;
+    }
+}
+
+async function endChatFromMenu(){
+    zChat.endChat((err) => {
+        if(err){
+            console.log(err);
+            SendMessage('Something went wrong, please try again later.', 0);
+            return;
+        }
+        SendMessage('Chat ended!  Feel free to continue asking me questions.', 0);
+    });
+}
+
 async function humanFromMenu(){
     $.ajax({
         type: 'POST',
@@ -33,8 +59,10 @@ async function humanFromMenu(){
         }, 
         success: async function(lexData, status){
             botui.message.removeAll();
+            botui.action.hide();
             await LexResponse(lexData);
             scrollFix();
+            updateMenu('startChat');
             ToggleMenu();
         },
         error:   function(jqXHR, textStatus, errorThrown) {
@@ -53,7 +81,8 @@ function Restart(){
 }
     
 async function InitialGreeting(){
-    await SendMessage(('Hello ' + user.first_name + ', Welcome to Berkey Filters!'), 0);
+    await SendMessage(('Hello ' + user.first_name + '!'), 0);
+    await postToLex({ value: 'Get Started'});
     await SendMessage('Is there anything I can help you with today?', 0);
     let buttons = await SendQuickReplies([
         ['Yes', true],
@@ -68,47 +97,6 @@ async function InitialGreeting(){
     }
 }
 
-async function GetName(){
-    return new Promise(async (resolve, reject) => {
-        let yourName = '';
-        let name = 'name=';
-        let decodedCookie = decodeURIComponent(document.cookie);
-        let ca = decodedCookie.split(';');
-        for(let i = 0; i <ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) == ' ') {
-                c = c.substring(1);
-            }
-            if (c.indexOf(name) == 0) {
-                yourName = (c.substring(name.length, c.length));
-            }
-        }
-        if(yourName != ''){
-            user.first_name = yourName;
-            resolve();
-        }else {
-            await SetName();
-            resolve();
-        }
-    });
-}
-
-async function SetName(){
-    return new Promise(async (resolve, reject) => {
-        await SendMessage('Hello!  What is your name?');
-        botui.action.text({
-            action: {
-                placeholder: 'Your name'
-        }
-        }).then((res) => {
-            user.first_name = res.value;
-            let str = 'name=' + res.value;
-            document.cookie = str;
-            resolve();
-        });
-    });
-}
-
 async function InitialHelp(){
     await SendMessage('What do you need help with today?', 500);
     let buttons = await SendQuickReplies([
@@ -116,6 +104,7 @@ async function InitialHelp(){
         ['Product Issue', false],
         ['Other', 'other']
     ]);
+    scrollFix();
     let buttonData = await botui.action.button({ action: buttons});
     switch(buttonData.value){
         case 'orderIssue':
@@ -167,7 +156,7 @@ async function LexResponse(lexData){
             await SendMessage(greet, 0)
             await SendMessage('I\'m sorry, I wasn\'t quite able to understand you.  I\'ve made a note of this so someone can help teach me how to respond!', 1000);
             await SendMessage('If I haven\'t been very helpful, please give us a call at 1-800-350-4170', 1000);
-            await Prompt('Ask another question');
+            await SendMessage('You can also contact a human at any time by typing "I need a human"', 0);            await Prompt('Ask another question');
             scrollFix();
         } else {
             //Check if there are multiple messages to send, or just one
@@ -210,36 +199,26 @@ async function GetGif(str){
     });
 }
 
-//Helper functions
-async function Prompt(place){ 
-    if(typeof place == 'undefined'){
-        place = 'Ask me a question!';
-    }
-    return new Promise(async (resolve, reject) => {
-        await botui.action.text({
-            action: {
-                placeholder: place
+async function postToLex(res) {
+    return new Promise ((resolve, reject) => {
+        $.ajax({
+            type: 'POST',
+            url: '/lexify',
+            data: 
+            {
+                msg: res.value,
+                name: 'name'
+            }, 
+            success: async function(lexData, status){
+                await LexResponse(lexData);
+                scrollFix();
+                resolve();
+            },
+            error:   function(jqXHR, textStatus, errorThrown) {
+                console.log("Error, status = " + textStatus + ", " +
+                      "error thrown: " + errorThrown
+                );
             }
-        }).then(async function(res) {
-            $.ajax({
-                type: 'POST',
-                url: '/lexify',
-                data: 
-                {
-                    msg: res.value,
-                    name: 'name'
-                }, 
-                success: async function(lexData, status){
-                    await LexResponse(lexData);
-                    scrollFix();
-                    resolve();
-                },
-                error:   function(jqXHR, textStatus, errorThrown) {
-                    console.log("Error, status = " + textStatus + ", " +
-                          "error thrown: " + errorThrown
-                    );
-                }
-            });
         });
     });
 }
@@ -256,9 +235,13 @@ async function SendMessage(msg, delay){
 }
 
 async function SendMessages(msgs, delay){
+    if(delay == null || delay == undefined)
+    {
+        delay = 0;
+    }
     return new Promise(async (resolve, reject) => {
         msgs.forEach(async(elem) => {
-            await SendMessage(elem.value, 0);
+            await SendMessage(elem.value, delay);
         });
         scrollFix();
         resolve();
@@ -284,6 +267,13 @@ async function SendQuickReplies(buttons, msg, delay){
     });
 }
 
+function startTyping(){
+    document.getElementById('typing').innerHTML = 'Agent is typing...';
+}
+
+function stopTyping(){
+    document.getElementById('typing').innerHTML = 'Intelligent Support AI';
+}
 
 async function FollowUp(intent){
     console.log(intent);
@@ -298,8 +288,12 @@ async function FollowUp(intent){
         case 'OrderStatus':
             Prompt('Order Number');
             break;
-        case 'Bye':
         case 'needHuman':
+            startChat('This is a test from Chris! Hello');
+            break;
+        case 'Initialize':
+            break;
+        case 'Bye':
         case 'Insult':
         case 'Joke':
         case 'Humans':

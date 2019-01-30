@@ -30,7 +30,11 @@ app.post('/gif', async function(req,res) {
     );
 });
 
-app.post('/lexify', async function(req,res){
+app.get('/14353525522335123452', (req, res) => {
+    res.end('YzXWHZv4IzDHt5R1JmNR5X0B7MbkKqxr');
+});
+
+app.post('/lexify', async (req,res) => {
     messageText = req.body.msg;
     senderID = req.body.name;
     function regx(str) {
