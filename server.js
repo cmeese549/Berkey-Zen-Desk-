@@ -14,8 +14,12 @@ const port = 3000;
 app.use(express.static('assets'));
 app.use(express.static('node_modules'));
 
-app.get('/', function(req,res) {
+app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname + '/index.html'));
+});
+
+app.get('/admin', (req,res) => {
+    res.sendFile(path.join(__dirname + '/admin.html'));
 });
 
 app.post('/gif', async function(req,res) {   
@@ -32,6 +36,50 @@ app.post('/gif', async function(req,res) {
 
 app.get('/14353525522335123452', (req, res) => {
     res.end('YzXWHZv4IzDHt5R1JmNR5X0B7MbkKqxr');
+});
+
+app.get('/admin/view-intent', async (req,res) => {
+    res.sendFile(path.join(__dirname + '/view.html'));
+});
+
+app.post('/intent', async (req, res) => {
+    AWS.config.region = 'us-west-2';
+    const lexmodel = new AWS.LexModelBuildingService();
+    lexmodel.getIntent({ version: "$LATEST", name: req.body.name}, (err,data) => {
+        if(err){
+            console.log(err);
+            return;
+        }else{
+            res.end(JSON.stringify(data));
+        }
+    });
+});
+
+app.post('/putIntent', (req,res) => {
+    AWS.config.region = 'us-west-2';
+    const lexmodel = new AWS.LexModelBuildingService();
+    lexmodel.putIntent(req.body.newIntent, (err, data) => {
+        if(err){
+            console.log(err);
+            return;
+        }else{
+            res.end(JSON.stringify(data));
+        }
+    });
+});
+
+app.post('/intents', async (req,res) => {
+    AWS.config.region = 'us-west-2';
+    const lexmodel = new AWS.LexModelBuildingService();
+    console.log(req.body.page);
+    lexmodel.getIntents({maxResults: 15, nextToken: req.body.page}, async (err, data) => {
+        if(err){
+            console.log(err);
+            return;
+        }else{
+            res.end(JSON.stringify(data));
+        }
+    });
 });
 
 app.post('/lexify', async (req,res) => {

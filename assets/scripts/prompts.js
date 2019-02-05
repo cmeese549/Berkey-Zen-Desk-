@@ -16,6 +16,18 @@ async function PromptEmail(){
     });
 }
 
+async function PromptOfflineMSG(){
+    return new Promise(async (resolve, reject) => {
+        await botui.action.text({
+            action: {
+                placeholder: 'Your message for us'
+            }
+        }).then((res) => {
+            resolve(res);
+        });
+    });
+}
+
 async function zPrompt(){
     return new Promise(async (resolve, reject) => {
         await botui.action.text({
@@ -26,10 +38,11 @@ async function zPrompt(){
             if(!zChat.isChatting){
                 postToLex(res);
                 resolve();
+            }else{
+                sendChat(res.value);
+                zPrompt();
+                resolve();
             }
-            sendChat(res.value);
-            zPrompt();
-            resolve();
         });
     });
 }

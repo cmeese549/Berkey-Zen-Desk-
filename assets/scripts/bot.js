@@ -19,7 +19,8 @@ async function Init() {
 
 function scrollFix(){
     var d = $('.botui');
-    d.scrollTop(d.prop("scrollHeight"));
+    //d.scrollTop(d.prop("scrollHeight"));
+    d.stop().animate({ scrollTop: d[0].scrollHeight}, 1000)
 }
 
 function updateMenu(type){
@@ -83,7 +84,7 @@ function Restart(){
 async function InitialGreeting(){
     await SendMessage(('Hello ' + user.first_name + '!'), 0);
     await postToLex({ value: 'Get Started'});
-    await SendMessage('Is there anything I can help you with today?', 0);
+    await SendMessage('Is there anything I can help you with today?', 2250);
     let buttons = await SendQuickReplies([
         ['Yes', true],
         ['No', false]
@@ -152,19 +153,19 @@ async function LexResponse(lexData){
     } else {
         if (lexData.intentName == null) {
             //No intent has been found, ask the user to rephrase their message
-            const greet = "Hello, " + user.first_name + "!";
-            await SendMessage(greet, 0)
-            await SendMessage('I\'m sorry, I wasn\'t quite able to understand you.  I\'ve made a note of this so someone can help teach me how to respond!', 1000);
-            await SendMessage('If I haven\'t been very helpful, please give us a call at 1-800-350-4170', 1000);
-            await SendMessage('You can also contact a human at any time by typing "I need a human"', 0);            await Prompt('Ask another question');
+            await SendMessage('I\'m sorry, I wasn\'t quite able to understand you.  I\'ve made a note of this so someone can help teach me how to respond!', 0);
+            await SendMessage('If I haven\'t been very helpful, please give us a call at 1-800-350-4170', 650);
+            await SendMessage('You can also contact a human at any time by typing "I need a human"', 1100);            
+            await Prompt('Ask another question');
             scrollFix();
         } else {
             //Check if there are multiple messages to send, or just one
             if (typeof lexData.message.messages !== 'undefined') {
                 //Send array of messages to user in proper order
-                await SendMessages(lexData.message.messages, 0);
-                await FollowUp(lexData.intentName);
-                scrollFix();
+                SendMessages(lexData.message.messages, 0).then(async (res) => {
+                    console.log('done');
+                    await FollowUp(lexData.intenName);
+                });
                 //let analytics = new dashData(messageText, senderID, event);
                 //analytics.intent = { "name": lexData.intentName };
                 //dashbot.logOutgoing(analytics);
@@ -172,7 +173,6 @@ async function LexResponse(lexData){
                 //Send the single message to the user
                 await SendMessage(lexData.message, 0);
                 await FollowUp(lexData.intentName);
-                scrollFix();
             }
         }
     }
@@ -234,17 +234,20 @@ async function SendMessage(msg, delay){
     });
 }
 
-async function SendMessages(msgs, delay){
+function SendMessages(msgs, delay){
     if(delay == null || delay == undefined)
     {
         delay = 0;
     }
-    return new Promise(async (resolve, reject) => {
-        msgs.forEach(async(elem) => {
-            await SendMessage(elem.value, delay);
+    return new Promise( (resolve, reject) => {
+        msgs.forEach((elem) => {
+            SendMessage(elem.value, delay);
+            delay += 750;
         });
-        scrollFix();
-        resolve();
+        setTimeout(() => {
+            scrollFix();
+            resolve();
+        }, delay);
     });
 }
 
@@ -286,7 +289,7 @@ async function FollowUp(intent){
             Prompt();
             break;
         case 'OrderStatus':
-            Prompt('Order Number');
+            Prompt('. . .');
             break;
         case 'needHuman':
             startChat('This is a test from Chris! Hello');
@@ -300,18 +303,20 @@ async function FollowUp(intent){
         case 'Thanks':
         case 'Help':
         case 'Love':
+        case 'GoAway':
         case 'HowAreYou':
             Prompt();
             break;
         default:
-            let qrData = await SendQuickReplies([
-                ['This helped, thanks!', 'Thanks'],
-                ["This didn't help.", 'I need a human']
-                ], 'Was I able to help?', 0);
-                await botui.action.button({ action: qrData}).then(async (res) => {
-                    UserFeedback(res.value);
-                });
-                scrollFix();
+            // let qrData = await SendQuickReplies([
+            //     ['This helped, thanks!', 'Thanks'],
+            //     ["This didn't help.", 'I need a human']
+            //     ], 'Was I able to help?', 0);
+            //     scrollFix();
+            //     await botui.action.button({ action: qrData}).then(async (res) => {
+            //         UserFeedback(res.value);
+            //     });
+            Prompt();
             break;
     }
 }

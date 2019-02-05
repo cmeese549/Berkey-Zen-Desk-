@@ -2,12 +2,12 @@ key = secretThing().then((res) => {
     zChat.init({
         account_key: res
     });
+    zChat.reconnect();
 });
 
 async function startChat(msg){
     let status = zChat.getAccountStatus();
-    s = false;
-    if(status == 'online' && s){
+    if(status == 'online'){
         zChat.sendChatMsg(msg, (err) => {
             if(err){
                 console.log(err);
@@ -30,18 +30,22 @@ async function startChat(msg){
             await GetEmail().then(async (email) => {
                 SendMessage('Awesome, now just type your message for us and I\'ll send it off!', 0);
                 let msg = await PromptOfflineMSG();
+                console.log(msg);
+                console.log(email);
                 let payload = 
                 {
                     name: user.first_name,
                     email: email,
-                    message: msg
+                    message: msg.value
                 };
                 zChat.sendOfflineMsg(payload, (err) => {
                     if(err){
                         SendMessage('Something went wrong, please try again later.', 0);
                         return;
-                    }
-                    SendMessage('Your message is sent!  We will get back to you at ' + email + ' as soon as possible.', 0);
+                    }else{
+                        SendMessage('Thanks! Your message is sent!  We will get back to you at ' + email + ' as soon as possible.', 0);
+                        Prompt();
+                    }  
                 });
             }).catch((err) => {
                 console.log(err);
