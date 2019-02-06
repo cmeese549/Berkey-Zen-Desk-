@@ -1,4 +1,5 @@
 var newIntent = {};
+var editing = false;
 
 function findGetParameter(parameterName) {
     var result = null,
@@ -67,7 +68,22 @@ function formatNext(lexData){
             elem.groupNumber = 1;
         }
     });
-    newIntent.conclusionStatement.responseCard = false;
+    newIntent.conclusionStatement.responseCard =  ' ';
+}
+
+function publishAllChanges(){
+    $.ajax({
+        type: 'GET',
+        url: '/publishBot', 
+        success: async function(res, status){;
+            console.log(res);
+        },
+        error:   function(jqXHR, textStatus, errorThrown) {
+            console.log("Error, status = " + textStatus + ", " +
+                  "error thrown: " + errorThrown
+            );
+        }
+    });
 }
 
 getIntent(findGetParameter('name'));

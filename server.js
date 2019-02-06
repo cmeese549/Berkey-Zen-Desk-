@@ -55,23 +55,145 @@ app.post('/intent', async (req, res) => {
     });
 });
 
-app.post('/putIntent', (req,res) => {
-    AWS.config.region = 'us-west-2';
-    const lexmodel = new AWS.LexModelBuildingService();
-    lexmodel.putIntent(req.body.newIntent, (err, data) => {
-        if(err){
-            console.log(err);
-            return;
-        }else{
-            res.end(JSON.stringify(data));
+function lexPutIntent(lexmodel, botData){
+    console.log('putting intent');
+    return new Promise((resolve, reject) => {
+        lexmodel.putIntent(botData, (err, data) => {
+            if(err){
+                console.log('put intent err');
+                console.log(err);
+                reject();
+            }else{
+                console.log('creatig new intent version');
+                lexmodel.createIntentVersion({name: botData.name}, (err, data2) => {
+                    if(err){
+                        console.log('create intent version error');
+                        console.log(err);
+                        reject();
+                    }else{
+                        data.newVersion = data2.version;
+                        resolve(data);
+                    }
+                });
+            }
+        });
+    });
+}
+
+function lexGetBot(lexmodel){
+    console.log('getting bot');
+    return new Promise((resolve, reject) => {
+        lexmodel.getBot({name: 'BerkeyBot', versionOrAlias: '$LATEST'}, (err, data) => {
+            if(err){
+                console.log('getBot err');
+                console.log(err);
+                reject();
+            }else{
+                resolve(data);
+            }   
+        });
+    });
+}
+
+async function lexPutBot(lexmodel, intents, checksum, version, name){
+    intents.forEach((elem) => {
+        if(elem.intentName == name){
+            elem.intentVersion = version;
         }
     });
+    console.log('putting bot')
+    return new Promise((resolve, reject) => {
+        lexmodel.putBot({ 
+            name: 'BerkeyBot',
+            abortStatement: {
+                messages: [{
+                    content: 'none',
+                    contentType: 'PlainText'
+                }]
+            },
+        clarificationPrompt: {
+            maxAttempts: 5,
+            messages: [{
+                content: 'none',
+                contentType: 'PlainText'
+            }]
+        },
+        locale: 'en-US', 
+        childDirected: false, 
+        createVersion: false,
+        processBehavior: 'BUILD',
+        intents: intents,
+        checksum: checksum
+        }, (err, data) => {
+            if(err){
+                console.log('put bot err');
+                console.log(err);
+                reject();
+            }else{
+                resolve(data);
+            }
+        });
+    });
+}
+
+function lexCreateBotVersion(lexmodel, botInfo){
+    console.log('creating new bot version');
+    return new Promise((resolve, reject) => {
+        lexmodel.createBotVersion({name: 'BerkeyBot', checksum: botInfo.checksum}, (err, data) => {
+            if(err){
+                console.log('create bot version err');
+                console.log(err);
+                reject(err);
+            }else{
+                resolve(data);
+            }
+        });
+    });
+}
+
+app.get('/publishBot', async (req,res) => {
+    console.log('Starting publish------------------------------');
+    console.log('publishing bot now');
+    publishing = true;
+    AWS.config.region = 'us-west-2';
+    const lexmodel  = new AWS.LexModelBuildingService();
+    let currentBot = await lexGetBot(lexmodel);
+    lexCreateBotVersion(lexmodel, currentBot).then(
+        (data) => {
+            console.log('yeet bot got published');
+            res.end(JSON.stringify(data));
+        }
+    ).catch(
+        (err) => {
+            console.log('rip bot publish failed');
+            res.end(JSON.stringify(err));
+        }
+    );
+});
+
+app.post('/putIntent', async (req,res) => {
+    AWS.config.region = 'us-west-2';
+    const lexmodel = new AWS.LexModelBuildingService();
+    try{
+        console.log('Starting update------------------------------');
+        let putIntent = await lexPutIntent(lexmodel, req.body.newIntent);
+        let currentBot = await lexGetBot(lexmodel);
+        await lexPutBot(lexmodel, currentBot.intents, currentBot.checksum, putIntent.newVersion, putIntent.name);
+        console.log('yeet bot got updated');
+        res.end(JSON.stringify(putIntent));
+    }
+    catch(err){
+        console.log('rip bot update failed');
+        if(err){
+            console.log(err);
+        }
+        res.end('failed');
+    }
 });
 
 app.post('/intents', async (req,res) => {
     AWS.config.region = 'us-west-2';
     const lexmodel = new AWS.LexModelBuildingService();
-    console.log(req.body.page);
     lexmodel.getIntents({maxResults: 15, nextToken: req.body.page}, async (err, data) => {
         if(err){
             console.log(err);
