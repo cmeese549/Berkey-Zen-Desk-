@@ -16,7 +16,11 @@ async function startChat(msg){
             }
         });
         let qp = (zChat.getQueuePosition());
-        SendMessage('You are currently at position ' + qp + ' in the queue!  We will be with you as soon as we can.');
+        if(qp == 0){
+            SendMessage('You are currently first in line for support!  We will be with you as soon as we can.');
+        }else{
+            SendMessage('You are currently at position ' + qp + ' in the queue!  We will be with you as soon as we can.');
+        }
     }else{
         SendMessage('We currently don\'t have any agents online!  Would you like to send an offine support request?  An agent will view your request and get back with you ASAP.', 0);
         //Prompt for email address and then for message and then send the message and tell them that it was sent
