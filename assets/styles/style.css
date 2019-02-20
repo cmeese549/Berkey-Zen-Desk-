@@ -80,3 +80,90 @@
 .sep{
     border-bottom:1px solid #919292;
 }
+
+.mainTitle{
+    font-family: big;
+}
+
+#intentName{
+    font-family: big;
+    color: #3f3f3f;
+}
+
+.editBody{
+    max-width: 750px;
+    margin: 0 auto;
+}
+
+.subtitle{
+    font-family: big;
+    margin: 7px;
+}
+
+.simpleText{
+    font-family: regular;
+    font-size: 1.1em;
+    margin: 7px;
+}
+
+.block{
+    background-color: rgb(255, 255, 255);
+    border-radius: 10px;
+    border: 1px solid #919292;
+    box-shadow: 2px 10px 40px rgba(22,20,19,0.4);
+    font-family: regular;
+}
+
+#utterances{
+    font-family: regular;
+    font-size: 1.3em;
+}
+
+#response{
+    font-family: regular;
+    font-size: 1.3em;
+}
+
+#addUtterance {
+    color: #0561c9;
+    border-width: 0px;
+    list-style-type: none;
+}
+
+#addUtterance:hover {
+    color: #000;
+}
+
+.addmsg {
+    color: #0561c9;
+    border-width: 0px;
+    list-style-type: none;
+}
+
+.addmsg:hover {
+    color: #000;
+}
+
+.del {
+    float: right;
+}
+
+.edit {
+    border-color: #000000;
+    border: 10px solid #919292;
+    border-width: 0px 0px 2px 0px;
+    font-family: regular;
+    background: #fff;
+    cursor: pointer;
+    padding-top: 10px;
+}
+
+.msgroup {
+    width: 90%;
+    margin: 0 auto;
+    margin-bottom: 10px;
+}
+
+.edit:hover {
+    background-color: #BBEA75;
+}

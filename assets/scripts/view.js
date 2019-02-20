@@ -18,10 +18,10 @@ function renderIntent(lexData){
     document.getElementById('intentName').innerHTML = lexData.name;
     let bigStr = '';
     lexData.sampleUtterances.forEach((elem) => {
-        let str = '<li id="' + elem + '"><span onclick="editUtterance(' + lexData.sampleUtterances.indexOf(elem) + ')">' + elem + '</span></li>';
+        let str = '<li class="edit" id="' + elem + '"><span onclick="editUtterance(' + lexData.sampleUtterances.indexOf(elem) + ')">' + elem + '</span></li>';
         bigStr += str;
     });
-    bigStr += '<li id="addUtterance"><span onclick="addUtterance()">Add Utterance</span></li>';
+    bigStr += '<li class="edit" id="addUtterance"><span onclick="addUtterance()">Add Utterance</span></li>';
     document.getElementById('utterances').innerHTML = bigStr;
     bigStr = '';
     let i;
@@ -32,17 +32,19 @@ function renderIntent(lexData){
         }
     });
     for(i = 1; i <= lastGroup; i++){
-        let str = '<span id="messageGroupParent' + i + '"><span id="messageGroupTitle' + i + '">Message Group ' + i + ':';
-        str += '<input type="button" onclick="deleteGroup(' + i + ')" value="Delete"></span>';
-        str += '<ol id="messageGroup' + i + '"></ol></span>';
+        let str = '<div class="block msgroup" id="messageGroupParent' + i + '"><span id="messageGroupTitle' + i + '">Message Group ' + i + ':';
+        str += '<input type="button" class="del" onclick="deleteGroup(' + i + ')" value="Delete"></span>';
+        str += '<ol id="messageGroup' + i + '"></ol></div>';
         bigStr += str;
     }
     document.getElementById('response').innerHTML = bigStr;
-    let str = '<span onclick="addMessageGroup(' + i + ')">Add Messagse Group</span>';
-    document.getElementById('newGroup').innerHTML = str;
+    if(lastGroup < 5){
+        let str = '<span onclick="addMessageGroup(' + i + ')">Add Messagse Group</span>';
+        document.getElementById('newGroup').innerHTML = str;
+    }
     lexData.conclusionStatement.messages.forEach((elem) => {
         let domStr = 'messageGroup' + elem.groupNumber;
-        let str = '<li id="editResponse' + lexData.conclusionStatement.messages.indexOf(elem) + '">';
+        let str = '<li class="edit" id="editResponse' + lexData.conclusionStatement.messages.indexOf(elem) + '">';
         str += '<span onclick="editResponse(' + lexData.conclusionStatement.messages.indexOf(elem) + ')">' + elem.content + '</span></li>';
         document.getElementById(domStr).innerHTML += str;
     });
@@ -56,7 +58,7 @@ function renderIntent(lexData){
         });
         if(counter < 5){
             let domStr = 'messageGroup' + currentGroup;
-            let str = '<li id="addMessageToGroup' + currentGroup + '">';
+            let str = '<li class="edit addmsg" id="addMessageToGroup' + currentGroup + '">';
             str += '<span onclick="addMessage(' + currentGroup + ')">Add Message</span></li>';
             document.getElementById(domStr).innerHTML += str;
         }

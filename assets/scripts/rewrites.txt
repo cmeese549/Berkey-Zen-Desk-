@@ -1,7 +1,0 @@
-rewrite ^/qt-traffic / permanent;
-rewrite ^/qt-ba / permanent;
-
-rewrite ^/berkey-water-filter/berkey-water-filter-system.html/qt-traffic /berkey-water-filter/berkey-water-filter-system.html permanent;
-rewrite ^/berkey-water-filter/berkey-water-filter-system.html/qt-ba /berkey-water-filter/berkey-water-filter-system.html permanent;
-
-rewrite ^/berkey-water-filters/(.*)$ /berkey-water-filter/$1 permanent;
