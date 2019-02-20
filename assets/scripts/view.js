@@ -21,19 +21,47 @@ function renderIntent(lexData){
         let str = '<li id="' + elem + '"><span onclick="editUtterance(' + lexData.sampleUtterances.indexOf(elem) + ')">' + elem + '</span></li>';
         bigStr += str;
     });
+    bigStr += '<li id="addUtterance"><span onclick="addUtterance()">Add Utterance</span></li>';
     document.getElementById('utterances').innerHTML = bigStr;
     bigStr = '';
-    for(let i = 1; i <= lexData.conclusionStatement.messages[lexData.conclusionStatement.messages.length - 1].groupNumber; i++){
-        let str = 'Message Group ' + i + ':<ol id="messageGroup' + i + '"></ol>';
+    let i;
+    let lastGroup = 1;
+    lexData.conclusionStatement.messages.forEach((elem) => {
+        if(elem.groupNumber > lastGroup){
+            lastGroup = elem.groupNumber;
+        }
+    });
+    for(i = 1; i <= lastGroup; i++){
+        let str = '<span id="messageGroupParent' + i + '"><span id="messageGroupTitle' + i + '">Message Group ' + i + ':';
+        str += '<input type="button" onclick="deleteGroup(' + i + ')" value="Delete"></span>';
+        str += '<ol id="messageGroup' + i + '"></ol></span>';
         bigStr += str;
     }
     document.getElementById('response').innerHTML = bigStr;
+    let str = '<span onclick="addMessageGroup(' + i + ')">Add Messagse Group</span>';
+    document.getElementById('newGroup').innerHTML = str;
     lexData.conclusionStatement.messages.forEach((elem) => {
         let domStr = 'messageGroup' + elem.groupNumber;
         let str = '<li id="editResponse' + lexData.conclusionStatement.messages.indexOf(elem) + '">';
         str += '<span onclick="editResponse(' + lexData.conclusionStatement.messages.indexOf(elem) + ')">' + elem.content + '</span></li>';
         document.getElementById(domStr).innerHTML += str;
     });
+    let counter = 0;
+    for(let i = 0; i < lastGroup; i++){
+        let currentGroup = i + 1;
+        lexData.conclusionStatement.messages.forEach((elem) => {
+            if(elem.groupNumber == currentGroup){
+                counter = counter + 1;
+            }
+        });
+        if(counter < 5){
+            let domStr = 'messageGroup' + currentGroup;
+            let str = '<li id="addMessageToGroup' + currentGroup + '">';
+            str += '<span onclick="addMessage(' + currentGroup + ')">Add Message</span></li>';
+            document.getElementById(domStr).innerHTML += str;
+        }
+        counter = 0;
+    }
 }
 
 function getIntent(intentName){
@@ -76,12 +104,13 @@ function publishAllChanges(){
         type: 'GET',
         url: '/publishBot', 
         success: async function(res, status){;
-            console.log(res);
+            location.reload();
         },
         error:   function(jqXHR, textStatus, errorThrown) {
             console.log("Error, status = " + textStatus + ", " +
                   "error thrown: " + errorThrown
             );
+            alert('Error updating Lexicon, please try again later');
         }
     });
 }

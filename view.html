@@ -1,12 +1,20 @@
 <body>
 <h1>Viewing intent: <span id="intentName"></span></h1>
-<button onclick="publishAllChanges()">Publish Changes</button>
+<!--<button onclick="publishAllChanges()">Publish Changes</button>-->
 <h3>Utterances:</h3>
+<p>Utterances are the trigger phrases that the bot will pick up on to determine a customers intent.
+    These do not have to be exact matches, as artificial intelligence is used to match similar statements to existing utterances.
+    These work best when they are no longer than 2-3 words.
+</p>
 <ul id="utterances">
 </ul>
 <h3>Response:</h3>
+<p>A response is made up of 5 message groups.  Each message group can contain up to 5 messages.  
+    One message from each group is chosen at random for each response.  A message group will only be saved if there is a message in that group.
+</p>
 <ul id="response">
 </ul>
+<span id="newGroup"></span>
 <script
 src="https://code.jquery.com/jquery-3.3.1.min.js"
 integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="

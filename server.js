@@ -16,7 +16,10 @@ app.use(express.static('node_modules'));
 
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname + '/index.html'));
-    console.log('Boop');
+});
+
+app.get('/testaroo', (req,res) => {
+    res.end('Hello');
 });
 
 app.get('/admin', (req,res) => {
