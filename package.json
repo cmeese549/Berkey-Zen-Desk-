@@ -1,0 +1,37 @@
+{
+  "name": "berkey-zen-desk-",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "aws-sdk": "^2.384.0",
+    "babel-register": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "body-parser": "^1.18.3",
+    "botui": "^0.3.7",
+    "cookie-parser": "^1.4.3",
+    "cookies": "^0.7.3",
+    "dashbot": "^10.2.4",
+    "eslint": "^5.14.1",
+    "express": "^4.16.4",
+    "giphy-api": "^2.0.1",
+    "nodemon": "^1.18.9",
+    "window-or-global": "^1.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "lint" : "eslint server.js && eslint assets/scripts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cmeese549/Berkey-Zen-Desk-.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cmeese549/Berkey-Zen-Desk-/issues"
+  },
+  "homepage": "https://github.com/cmeese549/Berkey-Zen-Desk-#readme"
+}

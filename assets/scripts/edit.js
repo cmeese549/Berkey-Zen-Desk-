@@ -6,6 +6,7 @@ function editUtterance(index){
         editing = true;
         let bigStr = '<input id="editIntentField" type="text" value="' + newIntent.sampleUtterances[index] + '">';
         bigStr += '<input type="button" onclick="putUtterance(' + index + ')" value="Submit"><input type="button" onclick="deleteUtterance(' + index + ')" value="Delete">';
+        document.getElementById(newIntent.sampleUtterances[index]).style.backgroundColor = '#BBEA75';
         document.getElementById(newIntent.sampleUtterances[index]).innerHTML = bigStr;
     }
 }
@@ -18,6 +19,7 @@ function editResponse(index){
         bigStr += '<input type="button" onclick="putResponse(' + index + ')" value="Submit">';
         bigStr += '<input type="button" onclick="deleteResponse(' + index + ')" value="Delete">';
         let domStr = 'editResponse' + index;
+        document.getElementById(domStr).style.backgroundColor = '#BBEA75';
         document.getElementById(domStr).innerHTML = bigStr;
     }
 }
@@ -91,6 +93,7 @@ function addUtterance(){
         editing = true;
         let bigStr = '<input id="editIntentField" type="text" value="">';
         bigStr += '<input type="button" onclick="putNewUtterance()" value="Submit"><input type="button" onclick="resetAddUtterance()" value="Cancel">';
+        document.getElementById('addUtterance').style.backgroundColor = '#BBEA75';
         document.getElementById('addUtterance').innerHTML = bigStr;
     }
 }

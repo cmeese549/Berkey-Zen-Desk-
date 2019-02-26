@@ -1,18 +1,23 @@
 const express = require('express');
 const app = express();
-const dashbot = require('dashbot')
 const path = require('path');
 const AWS = require('aws-sdk');
 const giphy = require('giphy-api')('XjJamx628YYbeFseYigMtx7UAV1XZUq3');
 const bodyParser = require('body-parser');
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ 
-  extended: true
+    extended: true
 }));
 const port = 3000;
 
 app.use(express.static('assets'));
 app.use(express.static('node_modules'));
+
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 
 app.get('/', (req,res) => {
     res.sendFile(path.join(__dirname + '/index.html'));
@@ -32,10 +37,9 @@ app.post('/gif', async function(req,res) {
         fmt: 'json',
         s: req.body.keyword,
         limit: 1
-        }, function(err, succ) {
-            res.end(JSON.stringify(succ));
-        }
-    );
+    }, function(err, succ) {
+        res.end(JSON.stringify(succ));
+    });
 });
 
 app.get('/14353525522335123452', (req, res) => {
@@ -49,7 +53,7 @@ app.get('/admin/view-intent', async (req,res) => {
 app.post('/intent', async (req, res) => {
     AWS.config.region = 'us-west-2';
     const lexmodel = new AWS.LexModelBuildingService();
-    lexmodel.getIntent({ version: "$LATEST", name: req.body.name}, (err,data) => {
+    lexmodel.getIntent({ version: '$LATEST', name: req.body.name}, (err,data) => {
         if(err){
             console.log(err);
             return;
@@ -105,7 +109,7 @@ async function lexPutBot(lexmodel, intents, checksum, version, name){
             elem.intentVersion = version;
         }
     });
-    console.log('putting bot')
+    console.log('putting bot');
     return new Promise((resolve, reject) => {
         lexmodel.putBot({ 
             name: 'BerkeyBot',
@@ -115,19 +119,19 @@ async function lexPutBot(lexmodel, intents, checksum, version, name){
                     contentType: 'PlainText'
                 }]
             },
-        clarificationPrompt: {
-            maxAttempts: 5,
-            messages: [{
-                content: 'none',
-                contentType: 'PlainText'
-            }]
-        },
-        locale: 'en-US', 
-        childDirected: false, 
-        createVersion: false,
-        processBehavior: 'BUILD',
-        intents: intents,
-        checksum: checksum
+            clarificationPrompt: {
+                maxAttempts: 5,
+                messages: [{
+                    content: 'none',
+                    contentType: 'PlainText'
+                }]
+            },
+            locale: 'en-US', 
+            childDirected: false, 
+            createVersion: false,
+            processBehavior: 'BUILD',
+            intents: intents,
+            checksum: checksum
         }, (err, data) => {
             if(err){
                 console.log('put bot err');
@@ -158,7 +162,6 @@ function lexCreateBotVersion(lexmodel, botInfo){
 app.get('/publishBot', async (req,res) => {
     console.log('Starting publish------------------------------');
     console.log('publishing bot now');
-    publishing = true;
     AWS.config.region = 'us-west-2';
     const lexmodel  = new AWS.LexModelBuildingService();
     let currentBot = await lexGetBot(lexmodel);
@@ -209,10 +212,10 @@ app.post('/intents', async (req,res) => {
 });
 
 app.post('/lexify', async (req,res) => {
-    messageText = req.body.msg;
-    senderID = req.body.name;
+    let messageText = req.body.msg;
+    let senderID = req.body.name;
     function regx(str) {
-        return JSON.parse(JSON.stringify(str).replace(/\\"/g, '"').replace(/\"{/g, '{').replace(/\"}]}"/g, '"}]}'));
+        return JSON.parse(JSON.stringify(str).replace(/\\"/g, '"').replace(/"{/g, '{').replace(/"}]}"/g, '"}]}'));
     }
     function send(params) {
         return new Promise((resolve, reject) => {
@@ -221,17 +224,25 @@ app.post('/lexify', async (req,res) => {
                     resolve(err);
                 } else {
                     data = regx(data);
-                    resolve(data);
+                    reject(data);
                 }
             });
         });
-    };
+    }
+    function dupes(arr, lexer) {
+        for (let j = 0; j < arr.length; j++) {
+            if (arr[j].intentName == lexer.intentName) {
+                return false;
+            }
+        }
+        return true;
+    }
     const userInput = messageText;
     AWS.config.region = 'us-west-2';
     const lexruntime = new AWS.LexRuntime();
     const params = {
-        botAlias: "BerkeyBot",
-        botName: "BerkeyBot",
+        botAlias: 'BerkeyBot',
+        botName: 'BerkeyBot',
         inputText: messageText,
         userId: senderID,
         sessionAttributes: {}
@@ -240,14 +251,6 @@ app.post('/lexify', async (req,res) => {
     if (init.intentName == null) {
         const messageStrings = userInput.split(' ');
         const intents = [];
-        function dupes(arr, lexer) {
-            for (let j = 0; j < arr.length; j++) {
-                if (arr[j].intentName == lexer.intentName) {
-                    return false;
-                }
-            }
-            return true;
-        };
         for (let i = 0; i < messageStrings.length; i++) {     
             if (messageStrings[i] !== '') {
                 params.inputText = messageStrings[i];
@@ -273,10 +276,6 @@ app.post('/lexify', async (req,res) => {
         init.multipleFound = false;
         res.end(JSON.stringify(init));
     }
-});
-
-app.post('/dashbot/logOutgoing', async function(req, res){
-
 });
 
 app.listen(port, () => {
