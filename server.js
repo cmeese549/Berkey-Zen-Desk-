@@ -151,7 +151,7 @@ function lexCreateBotVersion(lexmodel, botInfo){
             if(err){
                 console.log('create bot version err');
                 console.log(err);
-                reject(err);
+                reject();
             }else{
                 resolve(data);
             }
@@ -224,7 +224,7 @@ app.post('/lexify', async (req,res) => {
                     resolve(err);
                 } else {
                     data = regx(data);
-                    reject(data);
+                    resolve(data);
                 }
             });
         });
