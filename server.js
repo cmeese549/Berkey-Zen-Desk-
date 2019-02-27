@@ -4,11 +4,29 @@ const path = require('path');
 const AWS = require('aws-sdk');
 const giphy = require('giphy-api')('XjJamx628YYbeFseYigMtx7UAV1XZUq3');
 const bodyParser = require('body-parser');
+const fs = require('fs');
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ 
     extended: true
 }));
 const port = 3000;
+
+const mimeType = {
+    '.ico': 'image/x-icon',
+    '.html': 'text/html',
+    '.js': 'text/javascript',
+    '.json': 'application/json',
+    '.css': 'text/css',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.wav': 'audio/wav',
+    '.mp3': 'audio/mpeg',
+    '.svg': 'image/svg+xml',
+    '.pdf': 'application/pdf',
+    '.doc': 'application/msword',
+    '.eot': 'appliaction/vnd.ms-fontobject',
+    '.ttf': 'aplication/font-sfnt'
+};
 
 app.use(express.static('assets'));
 app.use(express.static('node_modules'));
@@ -276,6 +294,14 @@ app.post('/lexify', async (req,res) => {
         init.multipleFound = false;
         res.end(JSON.stringify(init));
     }
+});
+
+app.get('/proxy-css', (req, res) => {
+    let ext = 'css';
+    fs.readFile(pathname, (err, data) => {
+        res.setHeader('Content-type', mimeType[ext] || 'text/plain' );
+        res.end(data);
+    });
 });
 
 app.listen(port, () => {
