@@ -296,7 +296,7 @@ app.post('/lexify', async (req,res) => {
     }
 });
 
-app.get('/proxy-css', (req, res) => {
+app.get('/proxy-css.css', (req, res) => {
     let ext = 'css';
     fs.readFile('pub/css/styles-v4.css', (err, data) => {
         res.setHeader('Content-type', mimeType[ext] || 'text/plain' );
